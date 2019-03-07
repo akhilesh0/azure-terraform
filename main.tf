@@ -31,7 +31,7 @@ resource "azurerm_lb" "tf-lb" {
 
   frontend_ip_configuration {
     name                 = "vip_pubip"
-    public_ip_address_id = "${azurerm_public_ip.tf-lb.id}"
+    public_ip_address_id = "${azurerm_public_ip.lb-pubip.id}"
   }
 }
 
@@ -46,7 +46,7 @@ resource "azurerm_lb_probe" "tf-probe" {
   loadbalancer_id     = "${azurerm_lb.tf-lb.id}"
   name                = "tf-probe"
   protocol            = "tcp"
-  port                = ${var.lbport}
+  port                = "${var.lbport}"
   interval_in_seconds = 5
   number_of_probes    = 2  
 }
@@ -57,7 +57,7 @@ resource "azurerm_lb_rule" "tf-rule" {
   name                           = "tf-rule"
   protocol                       = "tcp"
   frontend_port                  = 80
-  backend_port                   = ${var.lbport}
+  backend_port                   = "${var.lbport}"
   frontend_ip_configuration_name = "frontendip"
   enable_floating_ip             = false
   backend_address_pool_id        = "${azurerm_lb_backend_address_pool.tf-pool.id}"
