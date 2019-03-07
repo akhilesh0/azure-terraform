@@ -27,3 +27,8 @@ variable "password" {
   description = "VM user password"
   default     = "demopass@123"
 }
+
+variable "lbport" {
+  description = "LB Backend Port"
+  default     = 32768
+}

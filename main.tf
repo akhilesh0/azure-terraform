@@ -17,6 +17,54 @@ resource "azurerm_subnet" "subnet" {
   address_prefix       = "${var.subnet}"
 }
 
+resource "azurerm_public_ip" "lb-pubip" {
+  name                = "vip_tfnodejs-lb-pubip"
+  location            = "${azurerm_resource_group.tf-nodejs-rg.location}"
+  resource_group_name = "${azurerm_resource_group.tf-nodejs-rg.name}"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "tf-lb" {
+  name                = "vip_tfnodejs-lb"
+  location            = "${azurerm_resource_group.tf-nodejs-rg.location}"
+  resource_group_name = "${azurerm_resource_group.tf-nodejs-rg.name}"
+
+  frontend_ip_configuration {
+    name                 = "vip_pubip"
+    public_ip_address_id = "${azurerm_public_ip.tf-lb.id}"
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "tf-pool" {
+  resource_group_name = "${azurerm_resource_group.tf-nodejs-rg.name}"
+  loadbalancer_id     = "${azurerm_lb.tf-lb.id}"
+  name                = "backendpool"
+}
+
+resource "azurerm_lb_probe" "tf-probe" {
+  resource_group_name = "${azurerm_resource_group.tf-nodejs-rg.name}"
+  loadbalancer_id     = "${azurerm_lb.tf-lb.id}"
+  name                = "tf-probe"
+  protocol            = "tcp"
+  port                = ${var.lbport}
+  interval_in_seconds = 5
+  number_of_probes    = 2  
+}
+
+resource "azurerm_lb_rule" "tf-rule" {
+  resource_group_name            = "${azurerm_resource_group.tf-nodejs-rg.name}"
+  loadbalancer_id                = "${azurerm_lb.tf-lb.id}"
+  name                           = "tf-rule"
+  protocol                       = "tcp"
+  frontend_port                  = 80
+  backend_port                   = ${var.lbport}
+  frontend_ip_configuration_name = "frontendip"
+  enable_floating_ip             = false
+  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.tf-pool.id}"
+  probe_id                       = "${azurerm_lb_probe.tf-probe.id}"
+  depends_on                     = ["azurerm_lb_probe.tf-probe"]
+}
+
 resource "azurerm_public_ip" "pubip" {
   name                         = "${var.vmname}-pip"
   location                     = "${azurerm_resource_group.tf-nodejs-rg.location}"
@@ -36,6 +84,7 @@ resource "azurerm_network_interface" "vnic" {
     subnet_id                     = "${azurerm_subnet.subnet.id}"
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.pubip.id}" 
+    load_balancer_backend_address_pools_ids = ["${azurerm_lb_backend_address_pool.tf-pool.id}"]
   }
 }
 
