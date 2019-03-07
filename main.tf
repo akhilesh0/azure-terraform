@@ -70,14 +70,37 @@ resource "azurerm_virtual_machine" "vm" {
     disable_password_authentication = false
   }
 
-  provisioner "remote-exec" {
-    connection {
-      user     = "${var.username}"
-      password = "${var.password}"
-    }
+}
 
+data "azurerm_public_ip" "getip" {
+  name                = "${azurerm_public_ip.pubip.name}"
+  resource_group_name = "${azurerm_virtual_machine.vm.resource_group_name}"
+}
+
+output "public_ip_address" {
+  value = "${data.azurerm_public_ip.getip.ip_address}"
+}
+
+resource "null_resource" "postaction" {
+  dependes_on = "${azurerm_virtual_machine.vm}"
+  
+  connection {
+    host = "${data.azurerm_public_ip.getip.ip_address}"
+    type = "ssh"
+    user = "${var.username}"
+    password = "${var.password}"
+    timeout = "5m"
+  }
+  
+  provisioner "file" {
+    source      = "script.sh"
+    destination = "/tmp/script.sh"
+  }
+
+  provisioner "remote-exec" {
     inline = [
-      "ls -la",
+      "chmod +x /tmp/script.sh",
+      "/tmp/script.sh",
     ]
   }
 }
