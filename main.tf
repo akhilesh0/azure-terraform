@@ -82,7 +82,6 @@ output "public_ip_address" {
 }
 
 resource "null_resource" "postaction" {
-  dependes_on = "${azurerm_virtual_machine.vm}"
   
   connection {
     host = "${data.azurerm_public_ip.getip.ip_address}"
@@ -108,4 +107,5 @@ resource "null_resource" "postaction" {
       "/tmp/script.sh",
     ]
   }
+  depends_on = ["azurerm_virtual_machine.vm"]
 }
