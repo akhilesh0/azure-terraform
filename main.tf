@@ -21,7 +21,7 @@ resource "azurerm_public_ip" "pubip" {
   name                         = "${var.vmname}-pip"
   location                     = "${azurerm_resource_group.tf-nodejs-rg.location}"
   resource_group_name          = "${azurerm_resource_group.tf-nodejs-rg.name}"
-  public_ip_address_allocation = "Dynamic"
+  public_ip_address_allocation = "Static"
   idle_timeout_in_minutes      = 30
 
 }
@@ -68,5 +68,16 @@ resource "azurerm_virtual_machine" "vm" {
   }
   os_profile_linux_config {
     disable_password_authentication = false
+  }
+
+  provisioner "remote-exec" {
+    connection {
+      user     = "${var.username}"
+      password = "${var.password}"
+    }
+
+    inline = [
+      "ls -la",
+    ]
   }
 }
