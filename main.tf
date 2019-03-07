@@ -58,7 +58,7 @@ resource "azurerm_lb_rule" "tf-rule" {
   protocol                       = "tcp"
   frontend_port                  = 80
   backend_port                   = "${var.lbport}"
-  frontend_ip_configuration_name = "frontendip"
+  frontend_ip_configuration_name = "vip_pubip"
   enable_floating_ip             = false
   backend_address_pool_id        = "${azurerm_lb_backend_address_pool.tf-pool.id}"
   probe_id                       = "${azurerm_lb_probe.tf-probe.id}"
