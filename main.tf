@@ -97,6 +97,11 @@ resource "null_resource" "postaction" {
     destination = "/tmp/script.sh"
   }
 
+  provisioner "file" {
+    source      = "Dockerfile"
+    destination = "/tmp/Dockerfile"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/script.sh",
